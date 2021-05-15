@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Web Sockets</title>
+	<style type="text/css">
+		div#log{
+			width: 800px;
+			height: 300px;
+			margin: 0 auto;
+			border: 5px solid black;
+			border-radius: 7px;
+		}
+		div#sendCtrls{
+			width: 235px;
+			margin: 30px auto;
+		}
+	</style>
+</head>
+<body>
+	<div id="log"></div>
+	<div id="sendCtrls">
+		<form method="post" action="process.php" onSubmit="return ajaxSubmit(this);">
+			<input type="text" placeholder="Your message here" id="text" name="">
+			<button>Send Message</button>
+		</form>
+	</div>
+	<script type="text/javascript">
+		var name = prompt('What is your name fella?');
+		var sock = new WebSocket("ws://localhost:5001");
+		var log = document.getElementById('log');
+		var text = document.getElementById('text');
+		sock.onopen=function(){
+			sock.send(JSON.stringify({
+				type: "name",
+				data: name
+			}));
+		}
+		sock.onmessage = function(event){
+			console.log(event.data);
+			var json = JSON.parse(event.data);
+			log.innerHTML += json.name+": "+json.data+"<br>";
+		}
+		document.querySelector('button').onclick = function(){
+			var text = document.getElementById('text').value;
+			//sock.send(text);
+			sock.send(JSON.stringify({
+				type: "message",
+				data: text
+			}));
+			log.innerHTML += "You: "+ text + "<br>";
+			text.value = "";
+		}
+
+		var ajaxSubmit = function(formEl) {
+                // fetch where we want to submit the form to
+                var url = $(formEl).attr('action');
+
+                // fetch the data for the form
+                var data = $(formEl).serializeArray();
+
+                // setup the ajax request
+                $.ajax({
+                    url: url,
+                    data: data,
+                    dataType: 'json',
+                    success: function() {
+                        if(rsp.success) {
+                            alert('form has been posted successfully');
+                        }
+                    }
+                });
+
+                // return false so the form does not actually
+                // submit to the page
+                return false;
+            }
+	</script>
+</body>
+</html>
